@@ -1,6 +1,12 @@
 {
   "name": "covid-19visualization",
   "version": "0.1.0",
+  "keywords": [
+    "echarts",
+    "javascript"
+  ],
+  "author": "Zingjj",
+  "description": "A Vue project with Echarts.js",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
