@@ -1,10 +1,5 @@
 <template>
   <div id="app">
-    <!-- <div id="nav">
-      <router-link to="/">Home</router-link> |
-      <router-link to="/about">About</router-link>
-    </div>-->
-    <!-- <router-view /> -->
     <el-menu
       background-color="#545c64"
       text-color="#fff"
@@ -35,16 +30,25 @@ export default {
             id: 0,
             name: "home",
             icon: "el-icon-message",
-            alias: "一级菜单"
+            alias: "国际"
           }
         },
         {
           //一级
           entity: {
             id: 1,
+            name: "China",
+            icon: "el-icon-message",
+            alias: "国内"
+          }
+        },
+        {
+          //一级
+          entity: {
+            id: 2,
             name: "about",
             icon: "el-icon-message",
-            alias: "两级菜单"
+            alias: "关于"
           }
           //二级
           // childs: [
