@@ -6,7 +6,9 @@ import ElementUI from 'element-ui';
 import 'element-ui/lib/theme-chalk/index.css';
 import VueResource from 'vue-resource';
 import echarts from 'echarts'
-
+import "echarts/map/js/world.js";
+import "echarts/map/js/china.js";
+import "echarts/extension-src/bmap/bmap.js"
 
 Vue.prototype.$echarts = echarts
 

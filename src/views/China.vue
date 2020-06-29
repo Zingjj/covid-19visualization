@@ -5,13 +5,27 @@
     </el-header>
     <el-main>
       <el-row>
-        <el-col :span="16">
-          <div class="grid-content bg-purple">
-            <div id="provinceTotalBar" :style="{width: '500px', height: '1000px'}"></div>
+        <el-col :span="15">
+          <div class="grid-content bg-purple" style="height:370px">
+            <div id="diseaseMap" style="height:350px;width:440px;float:left;margin-top:10px"></div>
+            <!--  type="border-card" -->
+            <el-tabs style="width:350px;float:left">
+              <el-tab-pane label="全国数据" style="height:300px;overflow-y:auto;overflow-x:hidden;">
+                <div id="provinceTotalBar" :style="{width: '320px', height: '1000px'}"></div>
+              </el-tab-pane>
+              <el-tab-pane label="除湖北外" style="height:300px;overflow-y:auto;overflow-x:hidden;">
+                <div id="otherAreaBar" :style="{width: '300px', height: '1000px'}"></div>
+              </el-tab-pane>
+            </el-tabs>
           </div>
         </el-col>
-        <el-col :span="8">
-          <div class="grid-content bg-purple-light"></div>
+        <el-col :span="9">
+          <div class="grid-content bg-purple-light">
+            <el-tag effect="plain">
+              <span style="font-size:14px">湖北省确诊人数日历热力图</span>
+            </el-tag>
+            <div id="calenderHeatmap_Hubei" :style="{width: '440px', height: '700px'}"></div>
+          </div>
         </el-col>
       </el-row>
     </el-main>
@@ -37,11 +51,18 @@ export default {
       provinceTimeSeriesConfirmedData: Map,
       provinceTimeSeriesCuredData: Map,
       provinceTimeSeriesDeadData: Map,
+      // 以下为含湖北数据
       provinceCodeSortByConfirmed: Array,
       provinceNameSortByConfirmed: Array,
       confirmedSorted: Array,
       curedSorted: Array,
       deadSorted: Array,
+      // 以下为不含湖北数据
+      provinceCodeSortByConfirmed_xHB: Array,
+      provinceNameSortByConfirmed_xHB: Array,
+      confirmedSorted_xHB: Array,
+      curedSorted_xHB: Array,
+      deadSorted_xHB: Array,
       provinceCode: {
         110000: "北京",
         120000: "天津",
@@ -77,7 +98,11 @@ export default {
         820000: "澳门",
         810000: "香港",
         710000: "台湾"
-      }
+      },
+      totalMapConfirmedData: Array,
+      HubeiTimeSeriesData: Array,
+      calendarData2019_Hubei: [],
+      calendarData2020_Hubei: []
     };
   },
   components: {
@@ -85,7 +110,9 @@ export default {
     Footer
   },
   mounted() {
-    this.drawProvinceTotalVBar();
+    this.drawProvinceTotalBar();
+    this.drawMap();
+    this.drawCalendarHeatmap_Hubei();
   },
   created: function() {
     // created函数中的this指向当前vm实例
@@ -94,7 +121,10 @@ export default {
     this.getTimeSeriesConfirmedData();
     this.getTimeSeriesCuredData();
     this.getTimeSeriesDeadData();
-    this.sortMapData(this.provinceTimeSeriesConfirmedData);
+    this.getBarDataReady(this.provinceTimeSeriesConfirmedData);
+    this.getMapDataReady();
+    this.getCalendarHeatmapData_Hubei();
+    this.getCalHeatmapDataReady_Hubei();
   },
   methods: {
     getDomesticData() {
@@ -180,6 +210,25 @@ export default {
       this.provinceTimeSeriesDeadData = tmpMap1;
     },
     /**
+     * 选择呈现数据
+     */
+    // selectShowData(val) {
+    //   //显示全国数据
+    //   console.log(val);
+
+    //   if (this.area === "total") {
+    //     this.sortMapData(this.provinceTimeSeriesConfirmedData);
+    //     this.drawProvinceTotalBar();
+    //   }
+    //   if (this.area === "otherArea") {
+    //     let tmpMap = this.provinceTimeSeriesConfirmedData;
+    //     console.log(tmpMap.delete("420000"));
+
+    //     this.sortMapData(tmpMap.delete("420000"));
+    //     this.drawProvinceTotalBar();
+    //   }
+    // },
+    /**
      * Map排序
      */
     sortMapData(mapData) {
@@ -188,13 +237,12 @@ export default {
       arrObj.sort(function(a, b) {
         return a[1] - b[1];
       });
-      // console.log(arrObj);
-      this.provinceCodeSortByConfirmed = new Array();
-      this.provinceNameSortByConfirmed = new Array();
-      this.confirmedSorted = new Array();
-      this.curedSorted = new Array();
-      this.deadSorted = new Array();
-      arrObj.pop(); //将最后一项的全国数据移除
+      return arrObj;
+    },
+    /**
+     * 拼接柱状图1数据
+     */
+    completeMapData_1(arrObj) {
       arrObj.forEach(item => {
         this.provinceCodeSortByConfirmed.push(item[0]);
         this.provinceNameSortByConfirmed.push(this.provinceCode[item[0]]);
@@ -210,16 +258,65 @@ export default {
       console.log(this.deadSorted);
     },
     /**
+     * 拼接柱状图2数据
+     */
+    completeMapData_2(arrObj) {
+      arrObj.forEach(item => {
+        this.provinceCodeSortByConfirmed_xHB.push(item[0]);
+        this.provinceNameSortByConfirmed_xHB.push(this.provinceCode[item[0]]);
+        this.confirmedSorted_xHB.push(item[1]);
+        // 获取provinceCode为item[0]的省份的cured数据
+        this.curedSorted_xHB.push(
+          this.provinceTimeSeriesCuredData.get(item[0])
+        );
+        this.deadSorted_xHB.push(this.provinceTimeSeriesDeadData.get(item[0]));
+      });
+      console.log(this.provinceCodeSortByConfirmed_xHB);
+      console.log(this.provinceNameSortByConfirmed_xHB);
+      console.log(this.confirmedSorted_xHB);
+      console.log(this.curedSorted_xHB);
+      console.log(this.deadSorted_xHB);
+    },
+    /**
+     * 准备好柱状图数据
+     */
+    getBarDataReady(mapData) {
+      var arr = this.sortMapData(mapData);
+      this.provinceCodeSortByConfirmed = new Array();
+      this.provinceNameSortByConfirmed = new Array();
+      this.confirmedSorted = new Array();
+      this.curedSorted = new Array();
+      this.deadSorted = new Array();
+      this.provinceCodeSortByConfirmed_xHB = new Array();
+      this.provinceNameSortByConfirmed_xHB = new Array();
+      this.confirmedSorted_xHB = new Array();
+      this.curedSorted_xHB = new Array();
+      this.deadSorted_xHB = new Array();
+      arr.pop(); //将最后一项的全国数据移除
+      var arrExceptWuhan = new Array();
+      // 深拷贝
+      arr.forEach(item => {
+        if (item[0] != "420000") {
+          arrExceptWuhan.push(item);
+        }
+      });
+      this.completeMapData_1(arr);
+      this.completeMapData_2(arrExceptWuhan);
+    },
+    /**
      * 绘制省份累计确诊、治愈、死亡数柱状图
      */
-    drawProvinceTotalVBar() {
-      console.log("绘制");
-
-      let myChart = this.$echarts.init(
+    drawProvinceTotalBar() {
+      // console.log("绘制");
+      let myChart1 = this.$echarts.init(
         document.getElementById("provinceTotalBar")
       );
-      // // 绘制柱状图
-      myChart.setOption({
+      let myChart2 = this.$echarts.init(
+        document.getElementById("otherAreaBar")
+      );
+
+      // 绘制柱状图
+      myChart1.setOption({
         tooltip: {
           trigger: "axis",
           axisPointer: {
@@ -273,6 +370,281 @@ export default {
               position: "insideLeft"
             },
             data: this.deadSorted
+          }
+        ]
+      });
+      myChart2.setOption({
+        tooltip: {
+          trigger: "axis",
+          axisPointer: {
+            // 坐标轴指示器，坐标轴触发有效
+            type: "shadow" // 默认为直线，可选为：'line' | 'shadow'
+          }
+        },
+        legend: {
+          data: ["累计确诊", "累计治愈", "累计死亡"]
+        },
+        grid: {
+          left: "3%",
+          right: "4%",
+          bottom: "3%",
+          containLabel: true
+        },
+        xAxis: {
+          type: "value"
+        },
+        yAxis: {
+          type: "category",
+          data: this.provinceNameSortByConfirmed_xHB
+        },
+        series: [
+          {
+            name: "累计确诊",
+            type: "bar",
+            stack: "总量",
+            label: {
+              show: true,
+              position: "insideLeft"
+            },
+            data: this.confirmedSorted_xHB
+          },
+          {
+            name: "累计治愈",
+            type: "bar",
+            stack: "总量",
+            label: {
+              show: true,
+              position: "insideLeft"
+            },
+            data: this.curedSorted_xHB
+          },
+          {
+            name: "累计死亡",
+            type: "bar",
+            stack: "总量",
+            label: {
+              show: true,
+              position: "insideLeft"
+            },
+            data: this.deadSorted_xHB
+          }
+        ]
+      });
+    },
+    /**
+     * 准备地图数据
+     */
+    getMapDataReady() {
+      var arrObj = new Array();
+      var tmpMap = new Map();
+      this.provinceTimeSeriesConfirmedData.forEach((value, key) => {
+        tmpMap.set(key, value);
+      });
+      tmpMap.delete(null);
+      // console.log(tmpMap);
+
+      tmpMap.forEach((value, key) => {
+        var tmpObj = { name: "", value: 0 };
+        if (key !== null) {
+          tmpObj.name = this.provinceCode[key];
+          tmpObj.value = value;
+        }
+        arrObj.push(tmpObj);
+      });
+      this.totalMapConfirmedData = arrObj;
+      // console.log(arrObj);
+    },
+    drawMap() {
+      let mapChart = this.$echarts.init(document.getElementById("diseaseMap"));
+      mapChart.setOption({
+        tooltip: {
+          formatter: function(params) {
+            var info =
+              '<p style="font-size:15px">' +
+              params.name +
+              '</p><p style="font-size:14px">' +
+              "累计确诊人数：" +
+              params.value +
+              "</p>";
+            return info;
+          }
+        },
+        toolbox: {
+          show: true,
+          orient: "vertical",
+          left: "right",
+          top: "center",
+          feature: {
+            dataView: { readOnly: false },
+            restore: {},
+            saveAsImage: {}
+          }
+        },
+        //左侧小导航图标
+        visualMap: {
+          show: true,
+          x: "left",
+          y: "bottom",
+          splitList: [
+            { start: 1800, end: 100000 },
+            { start: 1500, end: 1800 },
+            { start: 1200, end: 1500 },
+            { start: 900, end: 1200 },
+            { start: 600, end: 900 },
+            { start: 300, end: 600 },
+            { start: 0, end: 300 }
+          ],
+          color: [
+            "#FF0000",
+            "#5475f5",
+            "#9feaa5",
+            "#85daef",
+            "#74e2ca",
+            "#e6ac53",
+            "#9fb5ea"
+          ]
+        },
+        series: [
+          {
+            name: "国内确诊热力图",
+            type: "map",
+            mapType: "china",
+            zoom: 1.2,
+            roam: true,
+            label: {
+              normal: {
+                show: true //显示省份标签
+              },
+              emphasis: {
+                show: true //对应的鼠标悬浮效果
+              }
+            },
+            data: this.totalMapConfirmedData
+          }
+        ]
+      });
+    },
+    /**
+     * 获取湖北的每日数据,需要在调用过getDataByProvince()方法后才能调用该方法
+     */
+    getCalendarHeatmapData_Hubei() {
+      var HubeiData = new Array();
+      HubeiData.push({
+        city: null,
+        cityCode: null,
+        confirmed: 0,
+        country: "中国",
+        countryCode: "CN",
+        cured: 0,
+        date: "2019-11-30",
+        dead: 0,
+        province: "湖北省",
+        provinceCode: "420000",
+        suspected: 0
+      });
+      this.provinceData.forEach(item => {
+        if (item.provinceCode === "420000") {
+          HubeiData.push(item);
+        }
+      });
+      console.log(HubeiData);
+      this.HubeiTimeSeriesData = HubeiData;
+    },
+    /**
+     * 湖北日历热力图数据准备
+     */
+    getCalHeatmapDataReady_Hubei() {
+      var arr_2019 = [];
+      var arr_2020 = [];
+      // console.log(arr);
+      // reduce的第一次迭代是从数组第二项开始
+      // 第一次迭代中prev是第一项,cur是数组第二项
+      this.HubeiTimeSeriesData.reduce((prev, cur) => {
+        var curDate = new Date(cur.date);
+        // console.log(curDate.getFullYear());
+
+        if (curDate.getFullYear() == 2019) {
+          arr_2019.push([
+            this.$echarts.format.formatTime("yyyy-MM-dd", cur.date),
+            cur.confirmed - prev.confirmed
+          ]);
+        }
+        if (curDate.getFullYear() == 2020) {
+          arr_2020.push([
+            this.$echarts.format.formatTime("yyyy-MM-dd", cur.date),
+            cur.confirmed - prev.confirmed
+          ]);
+        }
+        return cur;
+      });
+      this.calendarData2019_Hubei = arr_2019;
+      this.calendarData2020_Hubei = arr_2020;
+    },
+    /**
+     * 绘制2019和2020湖北省确诊人数的日历热力图
+     */
+    drawCalendarHeatmap_Hubei() {
+      let mapChart = this.$echarts.init(
+        document.getElementById("calenderHeatmap_Hubei")
+      );
+      let that = this;
+      mapChart.setOption({
+        tooltip: {
+          position: "top",
+          formatter: function(p) {
+            var format = that.$echarts.format.formatTime(
+              "yyyy-MM-dd",
+              p.data[0]
+            );
+            // console.log(p);
+
+            return format + ": " + p.data[1];
+          }
+        },
+        visualMap: {
+          min: 0,
+          max: 4000,
+          calculable: true,
+          orient: "vertical",
+          left: 10,
+          top: "center"
+        },
+
+        calendar: [
+          {
+            right: 180,
+            cellSize: [20, "auto"],
+            bottom: 50,
+            orient: "vertical",
+            range: "2019",
+            dayLabel: {
+              margin: 5
+            }
+          },
+          {
+            left: 290,
+            cellSize: [20, "auto"],
+            bottom: 50,
+            orient: "vertical",
+            range: "2020",
+            dayLabel: {
+              margin: 5
+            }
+          }
+        ],
+
+        series: [
+          {
+            type: "heatmap",
+            coordinateSystem: "calendar",
+            calendarIndex: 0,
+            data: this.calendarData2019_Hubei
+          },
+          {
+            type: "heatmap",
+            coordinateSystem: "calendar",
+            calendarIndex: 1,
+            data: this.calendarData2020_Hubei
           }
         ]
       });
