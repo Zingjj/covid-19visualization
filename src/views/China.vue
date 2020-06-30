@@ -4,25 +4,38 @@
       <TotalNumBar :data="domesticData" />
     </el-header>
     <el-main>
-      <el-row>
+      <el-row :gutter="10">
         <el-col :span="15">
-          <div class="grid-content bg-purple" style="height:370px">
-            <div id="diseaseMap" style="height:350px;width:440px;float:left;margin-top:10px"></div>
-            <!--  type="border-card" -->
-            <el-tabs style="width:350px;float:left">
-              <el-tab-pane label="全国数据" style="height:300px;overflow-y:auto;overflow-x:hidden;">
-                <div id="provinceTotalBar" :style="{width: '320px', height: '1000px'}"></div>
-              </el-tab-pane>
-              <el-tab-pane label="除湖北外" style="height:300px;overflow-y:auto;overflow-x:hidden;">
-                <div id="otherAreaBar" :style="{width: '300px', height: '1000px'}"></div>
-              </el-tab-pane>
-            </el-tabs>
-          </div>
+          <el-row>
+            <div class="grid-content bg-purple" style="height:370px">
+              <div id="diseaseMap" style="height:350px;width:440px;float:left;margin-top:10px"></div>
+              <!--  type="border-card" -->
+              <el-tabs style="width:350px;float:left">
+                <el-tab-pane label="全国数据" style="height:300px;overflow-y:auto;overflow-x:hidden;">
+                  <div id="provinceTotalBar" :style="{width: '320px', height: '1000px'}"></div>
+                </el-tab-pane>
+                <el-tab-pane label="除湖北外" style="height:300px;overflow-y:auto;overflow-x:hidden;">
+                  <div id="otherAreaBar" :style="{width: '300px', height: '1000px'}"></div>
+                </el-tab-pane>
+              </el-tabs>
+            </div>
+          </el-row>
+          <el-row>
+            <div class="grid-content bg-purple" style="height:340px">
+              <el-col :span="12">
+                <el-tag effect="plain" class="timeLineTag">
+                  <span style="font-size:14px">全国每日确诊人数变化曲线</span>
+                </el-tag>
+                <div id="timeSeriesLine_QG" :style="{width: '550px', height: '300px'}"></div>
+              </el-col>
+              <el-col :span="3"></el-col>
+            </div>
+          </el-row>
         </el-col>
         <el-col :span="9">
           <div class="grid-content bg-purple-light">
             <el-tag effect="plain">
-              <span style="font-size:14px">湖北省确诊人数日历热力图</span>
+              <span style="font-size:14px">湖北省新增确诊人数日历热力图</span>
             </el-tag>
             <div id="calenderHeatmap_Hubei" :style="{width: '440px', height: '700px'}"></div>
           </div>
@@ -101,8 +114,10 @@ export default {
       },
       totalMapConfirmedData: Array,
       HubeiTimeSeriesData: Array,
+      QGTimeSeriesData: [],
       calendarData2019_Hubei: [],
-      calendarData2020_Hubei: []
+      calendarData2020_Hubei: [],
+      lineSeriesConfirmedData_QG: []
     };
   },
   components: {
@@ -113,6 +128,7 @@ export default {
     this.drawProvinceTotalBar();
     this.drawMap();
     this.drawCalendarHeatmap_Hubei();
+    this.drawTimeSeriesLine_QG();
   },
   created: function() {
     // created函数中的this指向当前vm实例
@@ -125,11 +141,13 @@ export default {
     this.getMapDataReady();
     this.getCalendarHeatmapData_Hubei();
     this.getCalHeatmapDataReady_Hubei();
+    this.getTimeSeriesData_QG();
+    this.getTimeSeriesLineDataReady_QG();
   },
   methods: {
     getDomesticData() {
       this.domesticData = DomesticData.results[0];
-      console.log(this.domesticData);
+      // console.log(this.domesticData);
     },
     /**
      * 整理全国各省份数据
@@ -162,7 +180,7 @@ export default {
         }
       });
       // console.log(this.provinceData);
-      console.log(tmpMap1);
+      // console.log(tmpMap1);
       this.provinceTimeSeriesConfirmedData = tmpMap1;
     },
     /**
@@ -184,7 +202,7 @@ export default {
         }
       });
       // console.log(this.provinceData);
-      console.log(tmpMap1);
+      // console.log(tmpMap1);
       this.provinceTimeSeriesCuredData = tmpMap1;
     },
     /**
@@ -206,7 +224,7 @@ export default {
         }
       });
       // console.log(this.provinceData);
-      console.log(tmpMap1);
+      // console.log(tmpMap1);
       this.provinceTimeSeriesDeadData = tmpMap1;
     },
     /**
@@ -251,11 +269,6 @@ export default {
         this.curedSorted.push(this.provinceTimeSeriesCuredData.get(item[0]));
         this.deadSorted.push(this.provinceTimeSeriesDeadData.get(item[0]));
       });
-      console.log(this.provinceCodeSortByConfirmed);
-      console.log(this.provinceNameSortByConfirmed);
-      console.log(this.confirmedSorted);
-      console.log(this.curedSorted);
-      console.log(this.deadSorted);
     },
     /**
      * 拼接柱状图2数据
@@ -271,11 +284,6 @@ export default {
         );
         this.deadSorted_xHB.push(this.provinceTimeSeriesDeadData.get(item[0]));
       });
-      console.log(this.provinceCodeSortByConfirmed_xHB);
-      console.log(this.provinceNameSortByConfirmed_xHB);
-      console.log(this.confirmedSorted_xHB);
-      console.log(this.curedSorted_xHB);
-      console.log(this.deadSorted_xHB);
     },
     /**
      * 准备好柱状图数据
@@ -547,8 +555,21 @@ export default {
           HubeiData.push(item);
         }
       });
-      console.log(HubeiData);
+      // console.log(HubeiData);
       this.HubeiTimeSeriesData = HubeiData;
+    },
+    /**
+     * 获取国内每日数据,需要在调用过getDataByProvince()方法后才能调用该方法
+     */
+    getTimeSeriesData_QG() {
+      var QGData = new Array();
+      this.provinceData.forEach(item => {
+        if (item.provinceCode === null) {
+          QGData.push(item);
+        }
+      });
+      console.log(QGData);
+      this.QGTimeSeriesData = QGData;
     },
     /**
      * 湖北日历热力图数据准备
@@ -648,6 +669,69 @@ export default {
           }
         ]
       });
+    },
+    /**
+     * 全国折线数据准备
+     */
+    getTimeSeriesLineDataReady_QG() {
+      var arr = [];
+      this.QGTimeSeriesData.forEach(item => {
+        arr.push([
+          this.$echarts.format.formatTime("yyyy-MM-dd", item.date),
+          item.confirmed
+        ]);
+      });
+      console.log(arr);
+
+      this.lineSeriesConfirmedData_QG = arr;
+    },
+    drawTimeSeriesLine_QG() {
+      let mapChart = this.$echarts.init(
+        document.getElementById("timeSeriesLine_QG")
+      );
+      // let that = this;
+      mapChart.setOption({
+        // title: {
+        //   text: "全国每日确诊人数变化趋势",
+        //   left: "60"
+        // },
+        tooltip: {
+          trigger: "axis",
+          // formatter: function (params) {
+          //     params = params[0];
+          //     var date = new Date(params.name);
+          //     return date.getDate() + '/' + (date.getMonth() + 1) + '/' + date.getFullYear() + ' : ' + params.value[1];
+          // },
+          axisPointer: {
+            animation: false
+          }
+        },
+        xAxis: {
+          type: "time",
+          splitLine: {
+            show: true
+          }
+        },
+        yAxis: {
+          type: "value",
+          boundaryGap: [0, "100%"],
+          splitLine: {
+            show: true
+          }
+        },
+        series: [
+          {
+            name: "全国每日确诊人数增长数据",
+            type: "line",
+            showSymbol: false,
+            lineStyle: {
+              color: "#000080"
+            },
+            hoverAnimation: false,
+            data: this.lineSeriesConfirmedData_QG
+          }
+        ]
+      });
     }
   }
 };
@@ -673,5 +757,11 @@ body > .el-container {
   background-color: #e9eef3;
   color: #333;
   text-align: center;
+}
+</style>
+<style scoped>
+.timeLineTag {
+  margin-top: 10px;
+  margin-left: 100px;
 }
 </style>
