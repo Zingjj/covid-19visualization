@@ -5,6 +5,7 @@
         <div class="title">累计确诊</div>
         <div class="number" style="color: rgb(209, 46, 46);">{{data.confirmedCount}}</div>
         <div v-if="data.confirmedIncr!==undefined&&data.confirmedIncr!==null">
+          <span class="subTitle">较昨天</span>
           <span class="incrNum" style="color: rgb(209, 46, 46);">+{{data.confirmedIncr}}</span>
         </div>
       </div>
@@ -14,7 +15,11 @@
         <div class="title">当前确诊</div>
         <div class="number" style="color: rgb(209, 46, 46);">{{data.currentConfirmedCount}}</div>
         <div v-if="data.currentConfirmedIncr!==undefined&&data.currentConfirmedIncr!==null">
-          <span class="incrNum" style="color: rgb(209, 46, 46);">+{{data.currentConfirmedIncr}}</span>
+          <span class="subTitle">较昨天</span>
+          <span class="incrNum" style="color: rgb(209, 46, 46);">
+            <template v-if="data.currentConfirmedIncr>=0">+</template>
+            {{data.currentConfirmedIncr}}
+          </span>
         </div>
       </div>
     </el-col>
@@ -23,6 +28,7 @@
         <div class="title">死亡人数</div>
         <div class="number" style="color: rgb(78, 71, 71);">{{data.deadCount}}</div>
         <div v-if="data.deadIncr!==undefined&&data.deadIncr!==null">
+          <span class="subTitle">较昨天</span>
           <span class="incrNum" style="color: rgb(78, 71, 71);">+{{data.deadIncr}}</span>
         </div>
       </div>
@@ -31,7 +37,9 @@
       <div class="grid-content bg-purple">
         <div class="title">累计治愈</div>
         <div class="number" style="color: rgb(103, 230, 44);">{{data.curedCount}}</div>
+
         <div v-if="data.curedIncr!==undefined&&data.curedIncr!==null">
+          <span class="subTitle">较昨天</span>
           <span class="incrNum" style="color: rgb(103, 230, 44);">+{{data.curedIncr}}</span>
         </div>
       </div>
@@ -87,6 +95,10 @@ export default {
 <style scoped>
 .title {
   font-size: 17px;
+  font-weight: 1000;
+}
+.subTitle {
+  font-size: 14px;
   font-weight: 1000;
 }
 .number {

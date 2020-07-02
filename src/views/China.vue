@@ -15,29 +15,50 @@
                   <div id="provinceTotalBar" :style="{width: '320px', height: '1000px'}"></div>
                 </el-tab-pane>
                 <el-tab-pane label="除湖北外" style="height:300px;overflow-y:auto;overflow-x:hidden;">
-                  <div id="otherAreaBar" :style="{width: '300px', height: '1000px'}"></div>
+                  <div id="otherAreaBar" :style="{width: '320px', height: '1000px'}"></div>
                 </el-tab-pane>
               </el-tabs>
             </div>
           </el-row>
           <el-row>
             <div class="grid-content bg-purple" style="height:340px">
-              <el-col :span="12">
+              <el-col :span="15">
                 <el-tag effect="plain" class="timeLineTag">
                   <span style="font-size:14px">全国每日确诊人数变化曲线</span>
                 </el-tag>
-                <div id="timeSeriesLine_QG" :style="{width: '550px', height: '300px'}"></div>
+                <div id="timeSeriesLine_QG" :style="{width: '530px', height: '300px'}"></div>
               </el-col>
-              <el-col :span="3"></el-col>
+              <el-col :span="9">
+                <el-card class="box-card" style="height:340px;overflow-y:auto;overflow-x:hidden;">
+                  <div slot="header" class="clearfix">
+                    <span>全国每日确诊人数变化数据</span>
+                  </div>
+                  <div
+                    v-for="item in lineSeriesConfirmedData_QG"
+                    :key="item"
+                    class="text item"
+                  >{{item[0] + "：" +item[1]}}</div>
+                </el-card>
+              </el-col>
             </div>
           </el-row>
         </el-col>
         <el-col :span="9">
           <div class="grid-content bg-purple-light">
-            <el-tag effect="plain">
-              <span style="font-size:14px">湖北省新增确诊人数日历热力图</span>
-            </el-tag>
-            <div id="calenderHeatmap_Hubei" :style="{width: '440px', height: '700px'}"></div>
+            <el-tabs tab-position="right" style="height: 740px;">
+              <el-tab-pane label="全国">
+                <el-tag effect="plain">
+                  <span style="font-size:14px">全国新增确诊人数日历热力图</span>
+                </el-tag>
+                <div id="calenderHeatmap_QG" :style="{width: '430px', height: '700px'}"></div>
+              </el-tab-pane>
+              <el-tab-pane label="湖北省">
+                <el-tag effect="plain">
+                  <span style="font-size:14px">湖北省新增确诊人数日历热力图</span>
+                </el-tag>
+                <div id="calenderHeatmap_Hubei" :style="{width: '430px', height: '700px'}"></div>
+              </el-tab-pane>
+            </el-tabs>
           </div>
         </el-col>
       </el-row>
@@ -117,7 +138,9 @@ export default {
       QGTimeSeriesData: [],
       calendarData2019_Hubei: [],
       calendarData2020_Hubei: [],
-      lineSeriesConfirmedData_QG: []
+      lineSeriesConfirmedData_QG: [],
+      calendarData2019_QG: [],
+      calendarData2020_QG: []
     };
   },
   components: {
@@ -128,6 +151,7 @@ export default {
     this.drawProvinceTotalBar();
     this.drawMap();
     this.drawCalendarHeatmap_Hubei();
+    this.drawCalendarHeatmap_QG();
     this.drawTimeSeriesLine_QG();
   },
   created: function() {
@@ -141,6 +165,8 @@ export default {
     this.getMapDataReady();
     this.getCalendarHeatmapData_Hubei();
     this.getCalHeatmapDataReady_Hubei();
+    this.getTimeSeriesData_QG();
+    this.getCalHeatmapDataReady_QG();
     this.getTimeSeriesData_QG();
     this.getTimeSeriesLineDataReady_QG();
   },
@@ -563,12 +589,25 @@ export default {
      */
     getTimeSeriesData_QG() {
       var QGData = new Array();
+      QGData.push({
+        city: null,
+        cityCode: null,
+        confirmed: 0,
+        country: "中国",
+        countryCode: "CN",
+        cured: 0,
+        date: "2019-11-30",
+        dead: 0,
+        province: null,
+        provinceCode: null,
+        suspected: 0
+      });
       this.provinceData.forEach(item => {
         if (item.provinceCode === null) {
           QGData.push(item);
         }
       });
-      console.log(QGData);
+      // console.log(QGData);
       this.QGTimeSeriesData = QGData;
     },
     /**
@@ -611,7 +650,7 @@ export default {
       let that = this;
       mapChart.setOption({
         tooltip: {
-          position: "top",
+          position: "left",
           formatter: function(p) {
             var format = that.$echarts.format.formatTime(
               "yyyy-MM-dd",
@@ -624,7 +663,7 @@ export default {
         },
         visualMap: {
           min: 0,
-          max: 4000,
+          max: 6000,
           calculable: true,
           orient: "vertical",
           left: 10,
@@ -633,8 +672,8 @@ export default {
 
         calendar: [
           {
-            right: 180,
-            cellSize: [20, "auto"],
+            right: 210,
+            cellSize: [15, "auto"],
             bottom: 50,
             orient: "vertical",
             range: "2019",
@@ -643,8 +682,8 @@ export default {
             }
           },
           {
-            left: 290,
-            cellSize: [20, "auto"],
+            left: 260,
+            cellSize: [15, "auto"],
             bottom: 50,
             orient: "vertical",
             range: "2020",
@@ -671,6 +710,105 @@ export default {
       });
     },
     /**
+     * 全国日历热力图数据准备
+     */
+    getCalHeatmapDataReady_QG() {
+      var arr_2019 = [];
+      var arr_2020 = [];
+      // console.log(arr);
+      // reduce的第一次迭代是从数组第二项开始
+      // 第一次迭代中prev是第一项,cur是数组第二项
+      this.QGTimeSeriesData.reduce((prev, cur) => {
+        var curDate = new Date(cur.date);
+        // console.log(curDate.getFullYear());
+
+        if (curDate.getFullYear() == 2019) {
+          arr_2019.push([
+            this.$echarts.format.formatTime("yyyy-MM-dd", cur.date),
+            cur.confirmed - prev.confirmed
+          ]);
+        }
+        if (curDate.getFullYear() == 2020) {
+          arr_2020.push([
+            this.$echarts.format.formatTime("yyyy-MM-dd", cur.date),
+            cur.confirmed - prev.confirmed
+          ]);
+        }
+        return cur;
+      });
+      this.calendarData2019_QG = arr_2019;
+      this.calendarData2020_QG = arr_2020;
+    },
+    /**
+     * 绘制2019和2020全国确诊人数的日历热力图
+     */
+    drawCalendarHeatmap_QG() {
+      let mapChart = this.$echarts.init(
+        document.getElementById("calenderHeatmap_QG")
+      );
+      let that = this;
+      mapChart.setOption({
+        tooltip: {
+          position: "left",
+          formatter: function(p) {
+            var format = that.$echarts.format.formatTime(
+              "yyyy-MM-dd",
+              p.data[0]
+            );
+            // console.log(p);
+
+            return format + ": " + p.data[1];
+          }
+        },
+        visualMap: {
+          min: 0,
+          max: 6000,
+          calculable: true,
+          orient: "vertical",
+          left: 10,
+          top: "center"
+        },
+
+        calendar: [
+          {
+            right: 210,
+            cellSize: [15, "auto"],
+            bottom: 50,
+            orient: "vertical",
+            range: "2019",
+            dayLabel: {
+              margin: 5
+            }
+          },
+          {
+            left: 260,
+            cellSize: [15, "auto"],
+            bottom: 50,
+            orient: "vertical",
+            range: "2020",
+            dayLabel: {
+              margin: 5
+            }
+          }
+        ],
+
+        series: [
+          {
+            type: "heatmap",
+            coordinateSystem: "calendar",
+            calendarIndex: 0,
+            data: this.calendarData2019_QG
+          },
+          {
+            type: "heatmap",
+            coordinateSystem: "calendar",
+            calendarIndex: 1,
+            data: this.calendarData2020_QG
+          }
+        ]
+      });
+    },
+    /**
      * 全国折线数据准备
      */
     getTimeSeriesLineDataReady_QG() {
@@ -681,10 +819,13 @@ export default {
           item.confirmed
         ]);
       });
-      console.log(arr);
+      // console.log(arr);
 
       this.lineSeriesConfirmedData_QG = arr;
     },
+    /**
+     * 绘制全国每日确诊人数变化曲线
+     */
     drawTimeSeriesLine_QG() {
       let mapChart = this.$echarts.init(
         document.getElementById("timeSeriesLine_QG")
@@ -762,6 +903,21 @@ body > .el-container {
 <style scoped>
 .timeLineTag {
   margin-top: 10px;
-  margin-left: 100px;
+}
+.text {
+  font-size: 14px;
+  text-align: left;
+}
+
+.item {
+  margin-bottom: 18px;
+}
+.clearfix:before,
+.clearfix:after {
+  display: table;
+  content: "";
+}
+.clearfix:after {
+  clear: both;
 }
 </style>

@@ -29,7 +29,7 @@ export default {
           entity: {
             id: 0,
             name: "home",
-            icon: "el-icon-message",
+            icon: "el-icon-collection-tag",
             alias: "国际"
           }
         },
@@ -38,7 +38,7 @@ export default {
           entity: {
             id: 1,
             name: "China",
-            icon: "el-icon-message",
+            icon: "el-icon-collection-tag",
             alias: "国内"
           }
         },
@@ -47,7 +47,7 @@ export default {
           entity: {
             id: 2,
             name: "about",
-            icon: "el-icon-message",
+            icon: "el-icon-user",
             alias: "关于"
           }
           //二级
