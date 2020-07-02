@@ -34,8 +34,8 @@
                     <span>全国每日确诊人数变化数据</span>
                   </div>
                   <div
-                    v-for="item in lineSeriesConfirmedData_QG"
-                    :key="item"
+                    v-for="(item,index) in lineSeriesConfirmedData_QG"
+                    :key="index"
                     class="text item"
                   >{{item[0] + "：" +item[1]}}</div>
                 </el-card>

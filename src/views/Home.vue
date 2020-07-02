@@ -7,14 +7,17 @@
       <TotalNumBar :data="interNationalData" />
     </el-header>
     <el-main>
-      <el-row :gutter="10">
+      <!-- <el-row :gutter="10">
         <el-col :span="15">
-          <div class="grid-content bg-purple" style="height:600px"></div>
+          <div class="grid-content bg-purple" style="height:600px">
+            <div class="myEchart" style="width:100%;height:100%"></div>
+          </div>
         </el-col>
         <el-col :span="9">
           <div class="grid-content bg-purple-light" style="height:600px"></div>
         </el-col>
-      </el-row>
+      </el-row>-->
+      <!-- <div id="myEchart" style="height:550px;width:100%"></div> -->
     </el-main>
     <el-footer>
       <Footer />
@@ -26,9 +29,7 @@
 // @ is an alias to /src
 import TotalNumBar from "@/components/TotalNumBar.vue";
 import InterNationalData from "../../static/DXYOverall.json";
-// import CountryCode from "../../static/CountryCode.csv";
 import Footer from "@/components/Footer.vue";
-import axios from "axios";
 export default {
   name: "home",
   data() {
@@ -46,37 +47,12 @@ export default {
   },
   mounted() {
     // CountryCode
-    this.csvToJSON();
+    // this.getCountryCode();
   },
   methods: {
     getInternationalData() {
       this.interNationalData = InterNationalData.results[0].globalStatistics;
       console.log(this.interNationalData);
-    },
-    csvToJSON() {
-      // var lines = csv.split("\n");
-
-      // var result = [];
-
-      // var headers = lines[0].split(",");
-
-      // for (var i = 1; i < lines.length; i++) {
-      //   var obj = {};
-      //   var currentline = lines[i].split(",");
-
-      //   for (var j = 0; j < headers.length; j++) {
-      //     obj[headers[j]] = currentline[j];
-      //   }
-
-      //   result.push(obj);
-      // }
-      // console.log(JSON.stringify(result));
-
-      //return result; //JavaScript object
-      // return JSON.stringify(result);
-      axios.get("../../static/CountryCode.csv").then(res => {
-        console.log(res.data);
-      });
     }
   }
 };
@@ -99,7 +75,10 @@ body > .el-container {
   /* line-height: 60px; */
 }
 .el-main {
-  background-color: #e9eef3;
+  height: 600px;
+  width: 100%;
+  background: url("../assets/bg.jpg");
+  background-size: cover;
   color: #333;
   text-align: center;
   /* line-height: 160px; */

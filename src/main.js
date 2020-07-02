@@ -9,6 +9,7 @@ import echarts from 'echarts'
 import "echarts/map/js/world.js";
 import "echarts/map/js/china.js";
 import "echarts/extension-src/bmap/bmap.js"
+import "echarts-gl" //3D地图插件
 
 Vue.prototype.$echarts = echarts
 
