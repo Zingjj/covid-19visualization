@@ -34,7 +34,7 @@
                     <span>全国每日确诊人数变化数据</span>
                   </div>
                   <div
-                    v-for="(item,index) in lineSeriesConfirmedData_QG"
+                    v-for="(item,index) in lineSeriesConfirmedData_QG2"
                     :key="index"
                     class="text item"
                   >{{item[0] + "：" +item[1]}}</div>
@@ -140,19 +140,97 @@ export default {
       calendarData2020_Hubei: [],
       lineSeriesConfirmedData_QG: [],
       calendarData2019_QG: [],
-      calendarData2020_QG: []
+      calendarData2020_QG: [],
+      lineSeriesConfirmedData_QG2: []
     };
   },
   components: {
     TotalNumBar,
     Footer
   },
+  beforeMount() {
+    // 设置定时器
+    let that = this;
+    // that.lineSeriesConfirmedData_QG2 = [];
+    // that.lineSeriesConfirmedData_QG = [];
+    let t1 = setInterval(function() {
+      // console.log(that.lineSeriesConfirmedData_QG);
+      // console.log(that.lineSeriesConfirmedData_QG2);
+
+      for (var i = 0; i < 5; i++) {
+        if (that.lineSeriesConfirmedData_QG.length == 0) {
+          clearInterval(t1);
+        } else {
+          that.lineSeriesConfirmedData_QG2.push(
+            that.lineSeriesConfirmedData_QG.shift()
+          );
+        }
+      }
+      let myChart = that.$echarts.init(
+        document.getElementById("timeSeriesLine_QG")
+      );
+      let lineoption = {
+        title: {
+          // text: "全国每日确诊人数变化趋势",
+          left: "60"
+        },
+        tooltip: {
+          trigger: "axis",
+          formatter: function(params) {
+            // console.log(params);
+
+            params = params[0];
+            var date = new Date(params.data[0]);
+            return (
+              date.getDate() +
+              "/" +
+              (date.getMonth() + 1) +
+              "/" +
+              date.getFullYear() +
+              " : " +
+              params.data[1]
+            );
+          },
+          axisPointer: {
+            animation: false
+          }
+        },
+        xAxis: {
+          type: "time",
+          splitLine: {
+            show: true
+          }
+        },
+        yAxis: {
+          type: "value",
+          boundaryGap: [0, "100%"],
+          splitLine: {
+            show: true
+          }
+        },
+        series: [
+          {
+            name: "全国每日确诊人数增长数据",
+            type: "line",
+            showSymbol: false,
+            lineStyle: {
+              color: "#000080"
+            },
+            hoverAnimation: false,
+            data: that.lineSeriesConfirmedData_QG2
+          }
+        ]
+      };
+
+      myChart.setOption(lineoption);
+    }, 1000);
+  },
   mounted() {
     this.drawProvinceTotalBar();
     this.drawMap();
     this.drawCalendarHeatmap_Hubei();
     this.drawCalendarHeatmap_QG();
-    this.drawTimeSeriesLine_QG();
+    // this.drawTimeSeriesLine_QG();
   },
   created: function() {
     // created函数中的this指向当前vm实例
@@ -540,7 +618,7 @@ export default {
         },
         series: [
           {
-            name: "国内确诊热力图",
+            name: "国内累计确诊热力图",
             type: "map",
             mapType: "china",
             zoom: 1.2,
@@ -822,58 +900,58 @@ export default {
       // console.log(arr);
 
       this.lineSeriesConfirmedData_QG = arr;
-    },
+    }
     /**
      * 绘制全国每日确诊人数变化曲线
      */
-    drawTimeSeriesLine_QG() {
-      let mapChart = this.$echarts.init(
-        document.getElementById("timeSeriesLine_QG")
-      );
-      // let that = this;
-      mapChart.setOption({
-        // title: {
-        //   text: "全国每日确诊人数变化趋势",
-        //   left: "60"
-        // },
-        tooltip: {
-          trigger: "axis",
-          // formatter: function (params) {
-          //     params = params[0];
-          //     var date = new Date(params.name);
-          //     return date.getDate() + '/' + (date.getMonth() + 1) + '/' + date.getFullYear() + ' : ' + params.value[1];
-          // },
-          axisPointer: {
-            animation: false
-          }
-        },
-        xAxis: {
-          type: "time",
-          splitLine: {
-            show: true
-          }
-        },
-        yAxis: {
-          type: "value",
-          boundaryGap: [0, "100%"],
-          splitLine: {
-            show: true
-          }
-        },
-        series: [
-          {
-            name: "全国每日确诊人数增长数据",
-            type: "line",
-            showSymbol: false,
-            lineStyle: {
-              color: "#000080"
-            },
-            hoverAnimation: false,
-            data: this.lineSeriesConfirmedData_QG
-          }
-        ]
-      });
-    }
+    // drawTimeSeriesLine_QG() {
+    //   let mapChart = this.$echarts.init(
+    //     document.getElementById("timeSeriesLine_QG")
+    //   );
+    //   // let that = this;
+    //   mapChart.setOption({
+    //     // title: {
+    //     //   text: "全国每日确诊人数变化趋势",
+    //     //   left: "60"
+    //     // },
+    //     tooltip: {
+    //       trigger: "axis",
+    //       // formatter: function (params) {
+    //       //     params = params[0];
+    //       //     var date = new Date(params.name);
+    //       //     return date.getDate() + '/' + (date.getMonth() + 1) + '/' + date.getFullYear() + ' : ' + params.value[1];
+    //       // },
+    //       axisPointer: {
+    //         animation: false
+    //       }
+    //     },
+    //     xAxis: {
+    //       type: "time",
+    //       splitLine: {
+    //         show: true
+    //       }
+    //     },
+    //     yAxis: {
+    //       type: "value",
+    //       boundaryGap: [0, "100%"],
+    //       splitLine: {
+    //         show: true
+    //       }
+    //     },
+    //     series: [
+    //       {
+    //         name: "全国每日确诊人数增长数据",
+    //         type: "line",
+    //         showSymbol: false,
+    //         lineStyle: {
+    //           color: "#000080"
+    //         },
+    //         hoverAnimation: false,
+    //         data: this.lineSeriesConfirmedData_QG
+    //       }
+    //     ]
+    //   });
+    // }
   }
 };
 </script>

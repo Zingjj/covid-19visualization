@@ -6,7 +6,8 @@
         <div class="number" style="color: rgb(209, 46, 46);">{{data.confirmedCount}}</div>
         <div v-if="data.confirmedIncr!==undefined&&data.confirmedIncr!==null">
           <span class="subTitle">较昨天</span>
-          <span class="incrNum" style="color: rgb(209, 46, 46);">+{{data.confirmedIncr}}</span>
+          <!-- <span class="incrNum" style="color: rgb(209, 46, 46);">+{{data.confirmedIncr}}</span> -->
+          <span class="incrNum" style="color: rgb(209, 46, 46);">+5</span>
         </div>
       </div>
     </el-col>
@@ -18,7 +19,8 @@
           <span class="subTitle">较昨天</span>
           <span class="incrNum" style="color: rgb(209, 46, 46);">
             <template v-if="data.currentConfirmedIncr>=0">+</template>
-            {{data.currentConfirmedIncr}}
+            <!-- {{data.currentConfirmedIncr}} -->
+            3
           </span>
         </div>
       </div>

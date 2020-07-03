@@ -10,7 +10,14 @@
       <el-tabs tab-position="right" style="height:600px;width:100%;">
         <el-tab-pane label="疾病地图" style="width:100%">
           <el-tag effect="plain">全球新冠肺炎疾病热力图</el-tag>
-          <div id="diseaseMap" style="height:550px;width:1100px;"></div>
+          <el-row>
+            <el-col :span="18">
+              <div id="diseaseMap" style="height:550px;width:900px;"></div>
+            </el-col>
+            <el-col :span="6">
+              <div id="diseasePie" style="height:550px;width:290px;"></div>
+            </el-col>
+          </el-row>
         </el-tab-pane>
         <el-tab-pane
           label="柱状图"
@@ -85,7 +92,7 @@ export default {
     // },
     getInternationalData() {
       this.interNationalData = InterNationalData.results[0].globalStatistics;
-      console.log(this.interNationalData);
+      // console.log(this.interNationalData);
     },
     /**
      * 整理全球各国数据
@@ -96,7 +103,7 @@ export default {
           this.countryData.push(element);
         }
       });
-      console.log(this.countryData);
+      // console.log(this.countryData);
     },
     /**
      * 获取全球累计确诊数据
@@ -119,7 +126,7 @@ export default {
         }
       });
       // console.log(this.countryData);
-      console.log(tmpMap1);
+      // console.log(tmpMap1);
       // 存储全球数据
       this.countryTimeSeriesConfirmedData = tmpMap1;
       // 筛选出国家数据
@@ -365,10 +372,12 @@ export default {
         arrObj.push(tmpObj);
       });
       this.totalMapConfirmedData = arrObj;
-      console.log(arrObj);
+      // console.log(arrObj);
     },
     drawMap() {
       let mapChart = this.$echarts.init(document.getElementById("diseaseMap"));
+      let pieChart = this.$echarts.init(document.getElementById("diseasePie"));
+      let that = this;
       mapChart.setOption({
         tooltip: {
           formatter: function(params) {
@@ -422,6 +431,77 @@ export default {
             data: this.totalMapConfirmedData
           }
         ]
+      });
+      mapChart.on("click", function(event) {
+        // console.log(event);
+        // event.data.name是该地英文名称
+        // 需要从CountryCode中找到对应中文名
+        // 然后在this.countryTimeSeriesCuredData中找到对应治愈数据
+        // 在this.countryTimeSeriesDeadData中找到对应死亡数据
+        var tmpStr = "";
+        CountryCode.forEach(item => {
+          if (item.name_en === event.data.name) {
+            tmpStr = item.name;
+            return;
+          }
+        });
+        var curedNum = that.countryTimeSeriesCuredData.get(tmpStr);
+        var deadNum = that.countryTimeSeriesDeadData.get(tmpStr);
+        pieChart = that.$echarts.init(document.getElementById("diseasePie"));
+        pieChart.setOption({
+          title: {
+            text: tmpStr,
+            left: "center"
+          },
+          tooltip: {
+            trigger: "item",
+            formatter: "{b} : {c} ({d}%)"
+          },
+          legend: {
+            // orient: 'vertical',
+            // top: 'middle',
+            bottom: 10,
+            left: "center",
+            data: ["死亡", "治愈", "已确诊"]
+          },
+          series: [
+            {
+              type: "pie",
+              radius: "40%",
+              center: ["50%", "50%"],
+              selectedMode: "single",
+              data: [
+                { value: deadNum, name: "死亡" },
+                { value: curedNum, name: "治愈" },
+                { value: event.data.value - deadNum - curedNum, name: "已确诊" }
+              ],
+              emphasis: {
+                itemStyle: {
+                  shadowBlur: 10,
+                  shadowOffsetX: 0,
+                  shadowColor: "rgba(0, 0, 0, 0.5)"
+                }
+              }
+            }
+          ]
+        });
+
+        // var xAxisInfo = event.axesInfo[0];
+        // if (xAxisInfo) {
+        //     var dimension = xAxisInfo.value + 1;
+        //     mapChart.setOption({
+        //         series: {
+        //             id: 'pie',
+        //             label: {
+        //                 formatter: '{b}: {@[' + dimension + ']} ({d}%)'
+        //             },
+        //             encode: {
+        //                 value: dimension,
+        //                 tooltip: dimension
+        //             }
+        //         }
+        //     });
+        // }
       });
     }
   }
