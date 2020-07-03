@@ -28,6 +28,7 @@ import TotalNumBar from "@/components/TotalNumBar.vue";
 import DomesticData from "../../static/DXYOverall.json";
 import Footer from "@/components/Footer.vue";
 import TimeSeriesData from "../../static/Wuhan-2019-nCoV.json";
+import axios from "axios";
 // import axios from "axios";
 export default {
   name: "about",
@@ -39,7 +40,10 @@ export default {
     return {
       domesticData: Object,
       cityData: [],
-      cityTimeSeriesConfirmedData: Map
+      cityTimeSeriesConfirmedData: Map,
+      outPutCases: Map,
+      unKnownCases: Map,
+      pointAndValueConfirmedData: []
     };
   },
   created: function() {
@@ -47,7 +51,7 @@ export default {
     this.getDomesticData();
     this.getDataByProvince();
     this.getTimeSeriesConfirmedCityData();
-    this.get3DMapDataReady();
+    // this.get3DMapDataReady();
   },
   mounted() {
     this.draw3DMap_World();
@@ -83,7 +87,7 @@ export default {
           tmpMap1.set(item.cityCode, item.confirmed);
         }
       });
-      console.log(tmpMap1);
+      // console.log(tmpMap1);
 
       this.cityTimeSeriesConfirmedData = tmpMap1;
     },
@@ -108,8 +112,7 @@ export default {
         (str.charAt(str.length - 1) === "0" ||
           str.charAt(str.length - 1) === "1")
       ) {
-        console.log(str.charAt(str.length - 2));
-
+        // console.log(str.charAt(str.length - 2));
         return true;
       } else {
         return false;
@@ -159,19 +162,35 @@ export default {
           tmpMap_unknownCase.set(key, value);
         }
       });
-      console.log(tmpMap_outCase);
-      console.log(tmpMap_unknownCase);
+      this.outPutCases = tmpMap_outCase;
+      this.unKnownCases = tmpMap_outCase;
+      // console.log(tmpMap_outCase);
+      // console.log(tmpMap_unknownCase);
 
-      // tmpMap.forEach((value, key) => {
-      //   var tmpObj = { name: "", value: 0 };
-      //   if (key !== null) {
-      //     tmpObj.name = this.provinceCode[key];
-      //     tmpObj.value = value;
-      //   }
-      //   arrObj.push(tmpObj);
-      // });
-      // this.totalMapConfirmedData = arrObj;
-      // console.log(arrObj);
+      // 接下来处理normal数据
+      let pointValueArr = new Array();
+      tmpMap_normal.forEach((value, key) => {
+        // 调用高德地图API的接口
+        // key：8e23f0f1ae9beff2824eb010a6aee58d
+        // https://restapi.amap.com/v3/config/district?keywords=xxxx&subdistrict=0&key=8e23f0f1ae9beff2824eb010a6aee58d
+        // subdistrict=0：不返回下级行政区
+
+        axios({
+          url:
+            "https://restapi.amap.com/v3/config/district?keywords=" +
+            key +
+            "&subdistrict=0&key=bbcd35e0c4559f4da06cdf3070da8982&extensions=base",
+          method: "get"
+        }).then(res => {
+          if (res.data.districts[0].center !== undefined) {
+            let points = res.data.districts[0].center.split(",");
+            // console.log(points);
+            pointValueArr.push([points[0], points[1], value]);
+          }
+        });
+      });
+      // console.log(pointValueArr);
+      this.pointAndValueConfirmedData = pointValueArr;
     },
     draw3DMap_World() {
       let mapChart = this.$echarts.init(document.getElementById("myEchart"));
@@ -230,7 +249,7 @@ export default {
           },
           //左侧小导航图标
           visualMap: {
-            max: 40,
+            max: 1000,
             calculable: true,
             realtime: false,
             inRange: {
@@ -251,8 +270,22 @@ export default {
             outOfRange: {
               colorAlpha: 0
             }
-          }
+          },
           // regionHeight: 1 //区域的高度
+          series: [
+            {
+              type: "bar3D",
+              coordinateSystem: "geo3D",
+              shading: "lambert",
+              data: this.pointAndValueConfirmedData,
+              barSize: 0.1,
+              minHeight: 0.2,
+              silent: true,
+              itemStyle: {
+                color: "orange"
+              }
+            }
+          ]
         }
       });
     }

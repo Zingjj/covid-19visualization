@@ -86,17 +86,17 @@ export default {
       provinceTimeSeriesCuredData: Map,
       provinceTimeSeriesDeadData: Map,
       // 以下为含湖北数据
-      provinceCodeSortByConfirmed: Array,
-      provinceNameSortByConfirmed: Array,
-      confirmedSorted: Array,
-      curedSorted: Array,
-      deadSorted: Array,
+      provinceCodeSortByConfirmed: [],
+      provinceNameSortByConfirmed: [],
+      confirmedSorted: [],
+      curedSorted: [],
+      deadSorted: [],
       // 以下为不含湖北数据
-      provinceCodeSortByConfirmed_xHB: Array,
-      provinceNameSortByConfirmed_xHB: Array,
-      confirmedSorted_xHB: Array,
-      curedSorted_xHB: Array,
-      deadSorted_xHB: Array,
+      provinceCodeSortByConfirmed_xHB: [],
+      provinceNameSortByConfirmed_xHB: [],
+      confirmedSorted_xHB: [],
+      curedSorted_xHB: [],
+      deadSorted_xHB: [],
       provinceCode: {
         110000: "北京",
         120000: "天津",
@@ -316,16 +316,16 @@ export default {
      */
     getBarDataReady(mapData) {
       var arr = this.sortMapData(mapData);
-      this.provinceCodeSortByConfirmed = new Array();
-      this.provinceNameSortByConfirmed = new Array();
-      this.confirmedSorted = new Array();
-      this.curedSorted = new Array();
-      this.deadSorted = new Array();
-      this.provinceCodeSortByConfirmed_xHB = new Array();
-      this.provinceNameSortByConfirmed_xHB = new Array();
-      this.confirmedSorted_xHB = new Array();
-      this.curedSorted_xHB = new Array();
-      this.deadSorted_xHB = new Array();
+      // this.provinceCodeSortByConfirmed = new Array();
+      // this.provinceNameSortByConfirmed = new Array();
+      // this.confirmedSorted = new Array();
+      // this.curedSorted = new Array();
+      // this.deadSorted = new Array();
+      // this.provinceCodeSortByConfirmed_xHB = new Array();
+      // this.provinceNameSortByConfirmed_xHB = new Array();
+      // this.confirmedSorted_xHB = new Array();
+      // this.curedSorted_xHB = new Array();
+      // this.deadSorted_xHB = new Array();
       arr.pop(); //将最后一项的全国数据移除
       var arrExceptWuhan = new Array();
       // 深拷贝

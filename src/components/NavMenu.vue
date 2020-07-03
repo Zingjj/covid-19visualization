@@ -27,6 +27,7 @@
         <NavMenu :navMenus="navMenu.childs"></NavMenu>
       </el-submenu>
     </template>
+    <div class="freshDataTime">数据更新于：{{curDate}}</div>
   </div>
 </template>
 
@@ -37,8 +38,20 @@ export default {
   data() {
     return {
       activeIndex: "1",
-      activeIndex2: "1"
+      activeIndex2: "1",
+      curDate: ""
     };
+  },
+  created() {
+    var date = new Date();
+    date.setTime(date.getTime());
+    this.curDate =
+      date.getFullYear() +
+      "年" +
+      (date.getMonth() + 1) +
+      "月" +
+      date.getDate() +
+      "日";
   },
   methods: {
     handleSelect(key, keyPath) {
@@ -48,4 +61,11 @@ export default {
 };
 </script>
 <style>
+.freshDataTime {
+  margin-top: 18px;
+  /* margin-left: 50px; */
+  width: 200px;
+  color: #ffffff;
+  float: right;
+}
 </style>
